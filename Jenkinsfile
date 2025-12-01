@@ -24,6 +24,7 @@ pipeline {
                 script {
                     echo "Building Docker image..."
                     sh """
+                        sh 'usermod -aG docker jenkins || true'
                         docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
                     """
                 }
