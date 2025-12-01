@@ -24,7 +24,7 @@ pipeline {
                 script {
                     echo "Building Docker image..."
                     sh """
-                        sudo usermod -aG docker $USER || true
+                        usermod -aG docker $USER || true
                         docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
                     """
                 }
