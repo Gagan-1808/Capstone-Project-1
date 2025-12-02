@@ -23,10 +23,10 @@ pipeline {
         }
 
         stage('Build Docker Image') {
-            steps {
-                 agent {
+            agent {
                     label 'test1'
                  }
+            steps {
                 script {
                     echo "Building Docker image..."
                     sh """
@@ -37,10 +37,10 @@ pipeline {
         }
 
         stage('Run Docker Container') {
-            steps {
-                 agent {
+            agent {
                     label 'test1'
                  }
+            steps {
                 script {
                     echo "Running container for testing..."
                     sh """
@@ -51,10 +51,10 @@ pipeline {
         }
 
         stage('Test Docker Container') {
-            steps {
-                 agent {
+            agent {
                     label 'test1'
                  }
+            steps {
                 script {
                     echo "Testing container health..."
                     // Example test: check if container is running
@@ -67,10 +67,10 @@ pipeline {
         }
 
         stage('Push to Dockerhub and Logout'){
-            steps {
-                agent {
+            agent {
                     label 'test1'
                 }
+            steps {
                 script {
                     withCredentials([usernamePassword(
                         credentialsId: 'Raichu', 
@@ -92,10 +92,10 @@ pipeline {
         
 
         stage('Stop & Cleanup') {
-            steps {
-                agent {
+            agent {
                     label 'test1'
                 }
+            steps {
                 script {
                     echo "Stopping and removing test container..."
                     sh """
