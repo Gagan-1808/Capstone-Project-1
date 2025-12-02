@@ -15,6 +15,9 @@ pipeline {
     stages {
 
         stage('Checkout Code') {
+            agent {
+                label 'test1'
+            }
             steps {
                 echo "Fetching latest code from GitHub..."
                 checkout scm
@@ -23,6 +26,9 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
+                 agent {
+                    label 'test1'
+                 }
                 script {
                     echo "Building Docker image..."
                     sh """
@@ -34,6 +40,9 @@ pipeline {
 
         stage('Run Docker Container') {
             steps {
+                 agent {
+                    label 'test1'
+                 }
                 script {
                     echo "Running container for testing..."
                     sh """
@@ -45,6 +54,9 @@ pipeline {
 
         stage('Test Docker Container') {
             steps {
+                 agent {
+                    label 'test1'
+                 }
                 script {
                     echo "Testing container health..."
                     // Example test: check if container is running
@@ -56,8 +68,11 @@ pipeline {
             }
         }
 
-        stage('Push to Dockerhub'){
+        stage('Push to Dockerhub and Logout'){
             steps {
+                agent {
+                    label 'test1'
+                }
                 script {
                     withCredentials([usernamePassword(
                         credentialsId: 'Raichu', 
@@ -69,25 +84,20 @@ pipeline {
                             echo "Logging into Docker..."
                             echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                             docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                            docker logout
                          """
                     }
                 }
             }
         }
 
-        stage('Docker Logout') {
-            steps {
-                script {
-                    echo "logout from Docker"
-                    sh """
-                        docker logout
-                    """
-                }
-            }
-        }
+        
 
         stage('Stop & Cleanup') {
             steps {
+                agent {
+                    label 'test1'
+                }
                 script {
                     echo "Stopping and removing test container..."
                     sh """
