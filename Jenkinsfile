@@ -8,7 +8,7 @@ pipeline {
     }
 
     environment {
-        IMAGE_NAME = "myapp"
+        IMAGE_NAME = "raichu08/myapp"
         IMAGE_TAG = "v${BUILD_NUMBER}"
     }
 
@@ -51,6 +51,36 @@ pipeline {
                     sh """
                         sleep 5
                         docker ps | grep myapp-test
+                    """
+                }
+            }
+        }
+
+        stage('Push to Dockerhub'){
+            steps {
+                script {
+                    withCredentials([usernamePassword(
+                        credentialsId: 'Raichu', 
+                        usernameVariable: 'DOCKER_USER', 
+                        passwordVariable: 'DOCKER_PASS'
+                    )]) {
+                         sh """
+                            set -e
+                            echo "Logging into Docker..."
+                            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                            docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                         """
+                    }
+                }
+            }
+        }
+
+        stage('Docker Logout') {
+            steps {
+                script {
+                    echo "logout from Docker"
+                    sh """
+                        docker logout
                     """
                 }
             }
