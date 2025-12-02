@@ -100,6 +100,7 @@ pipeline {
                script {
                    echo "Deploying to prod server"
                    """
+                   docker pull ${IMAGE_NAME}:${IMAGE_TAG}
                    docker run -d --name myapp-test -p 80:80 ${IMAGE_NAME}:${IMAGE_TAG}
                    """
                } 
