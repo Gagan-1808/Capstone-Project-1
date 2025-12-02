@@ -44,7 +44,7 @@ pipeline {
                 script {
                     echo "Running container for testing..."
                     sh """
-                        docker run -d --name myapp-test -p 8080:8080 ${IMAGE_NAME}:${IMAGE_TAG}
+                        docker run -d --name myapp-test -p 80:80 ${IMAGE_NAME}:${IMAGE_TAG}
                     """
                 }
             }
@@ -86,6 +86,23 @@ pipeline {
                          """
                     }
                 }
+            }
+        }
+
+        stage('Deploy to prod') {
+            when {
+                expression { currentBuild.currentResult == "SUCCESS" }
+            }
+            agent {
+                label 'prod'
+            }
+            steps {
+               script {
+                   echo "Deploying to prod server"
+                   """
+                   docker run -d --name myapp-test -p 80:80 ${IMAGE_NAME}:${IMAGE_TAG}
+                   """
+               } 
             }
         }
 
