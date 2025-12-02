@@ -49,7 +49,7 @@ pipeline {
                     echo "Testing container health..."
                     // Example test: check if container is running
                     sh """
-                        sleep 5
+                        sleep 10
                         docker ps | grep myapp-test
                     """
                 }
