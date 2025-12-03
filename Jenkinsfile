@@ -11,6 +11,19 @@ pipeline {
     }
 
     stages {
+        stage('Validate branch') {
+            agent {
+                label 'test1'
+            }
+            steps {
+                script {
+                    if (!(env.BRANCH_NAME in ["main", "develop"])) {
+                        error "Build aborted: Pipeline runs ONLY for main and develop branches!"
+                    }
+                    echo "Running pipeline on branch: ${env.BRANCH_NAME}"
+                }
+            }
+        }
 
         stage('Checkout Code') {
             agent {
@@ -91,7 +104,10 @@ pipeline {
 
         stage('Deploy to prod') {
             when {
-                expression { currentBuild.currentResult == "SUCCESS" }
+                allof {
+                    branch 'main'
+                    expression { currentBuild.currentResult == "SUCCESS" }
+                } 
             }
             agent {
                 label 'prod'
@@ -100,6 +116,9 @@ pipeline {
                script {
                    echo "Deploying to prod server"
                    sh """
+                       docker stop myapp-test || true
+                       docker rm myapp-test || true
+                       docker rmi ${IMAGE_NAME} || true
                        docker pull ${IMAGE_NAME}:${IMAGE_TAG}
                        docker run -d --name myapp-test -p 80:80 ${IMAGE_NAME}:${IMAGE_TAG}
                    """
@@ -119,6 +138,7 @@ pipeline {
                     sh """
                         docker stop myapp-test || true
                         docker rm myapp-test || true
+                        docker rmi ${IMAGE_NAME} || true
                     """
                 }
             }
