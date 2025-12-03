@@ -104,7 +104,7 @@ pipeline {
 
         stage('Deploy to prod') {
             when {
-                allof {
+                allOf {
                     branch 'main'
                     expression { currentBuild.currentResult == "SUCCESS" }
                 } 
