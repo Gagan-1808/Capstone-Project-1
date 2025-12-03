@@ -1,7 +1,5 @@
 pipeline {
-    agent {
-        label 'test1'
-    }
+    agent none
 
     triggers {
         githubPush()
@@ -13,8 +11,24 @@ pipeline {
     }
 
     stages {
+        stage('Validate branch') {
+            agent {
+                label 'test1'
+            }
+            steps {
+                script {
+                    if (!(env.BRANCH_NAME in ["main", "develop"])) {
+                        error "Build aborted: Pipeline runs ONLY for main and develop branches!"
+                    }
+                    echo "Running pipeline on branch: ${env.BRANCH_NAME}"
+                }
+            }
+        }
 
         stage('Checkout Code') {
+            agent {
+                label 'test1'
+            }
             steps {
                 echo "Fetching latest code from GitHub..."
                 checkout scm
@@ -22,6 +36,9 @@ pipeline {
         }
 
         stage('Build Docker Image') {
+            agent {
+                    label 'test1'
+                 }
             steps {
                 script {
                     echo "Building Docker image..."
@@ -33,17 +50,23 @@ pipeline {
         }
 
         stage('Run Docker Container') {
+            agent {
+                    label 'test1'
+                 }
             steps {
                 script {
                     echo "Running container for testing..."
                     sh """
-                        docker run -d --name myapp-test -p 8080:8080 ${IMAGE_NAME}:${IMAGE_TAG}
+                        docker run -d --name myapp-test -p 80:80 ${IMAGE_NAME}:${IMAGE_TAG}
                     """
                 }
             }
         }
 
         stage('Test Docker Container') {
+            agent {
+                    label 'test1'
+                 }
             steps {
                 script {
                     echo "Testing container health..."
@@ -56,7 +79,10 @@ pipeline {
             }
         }
 
-        stage('Push to Dockerhub'){
+        stage('Push to Dockerhub and Logout'){
+            agent {
+                    label 'test1'
+                }
             steps {
                 script {
                     withCredentials([usernamePassword(
@@ -69,30 +95,50 @@ pipeline {
                             echo "Logging into Docker..."
                             echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
                             docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                            docker logout
                          """
                     }
                 }
             }
         }
 
-        stage('Docker Logout') {
+        stage('Deploy to prod') {
+            when {
+                allOf {
+                    branch 'main'
+                    expression { currentBuild.currentResult == "SUCCESS" }
+                } 
+            }
+            agent {
+                label 'prod'
+            }
             steps {
-                script {
-                    echo "logout from Docker"
-                    sh """
-                        docker logout
-                    """
-                }
+               script {
+                   echo "Deploying to prod server"
+                   sh """
+                       docker stop myapp-test || true
+                       docker rm myapp-test || true
+                       docker rmi ${IMAGE_NAME} || true
+                       docker pull ${IMAGE_NAME}:${IMAGE_TAG}
+                       docker run -d --name myapp-test -p 80:80 ${IMAGE_NAME}:${IMAGE_TAG}
+                   """
+               } 
             }
         }
 
+        
+
         stage('Stop & Cleanup') {
+            agent {
+                    label 'test1'
+                }
             steps {
                 script {
                     echo "Stopping and removing test container..."
                     sh """
                         docker stop myapp-test || true
                         docker rm myapp-test || true
+                        docker rmi ${IMAGE_NAME} || true
                     """
                 }
             }
