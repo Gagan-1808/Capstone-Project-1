@@ -11,16 +11,11 @@ pipeline {
     }
 
     stages {
-        stage('Validate branch') {
+        stage('Checkout Code') {
             when {
                 anyOf {
                     branch 'main'; branch 'develop'
                 }
-            }
-            }
-            
-
-        stage('Checkout Code') {
             agent {
                 label 'test1'
             }
@@ -31,6 +26,10 @@ pipeline {
         }
 
         stage('Build Docker Image') {
+            when {
+                anyOf {
+                    branch 'main'; branch 'develop'
+                }
             agent {
                     label 'test1'
                  }
@@ -45,6 +44,10 @@ pipeline {
         }
 
         stage('Run Docker Container') {
+            when {
+                anyOf {
+                    branch 'main'; branch 'develop'
+                }
             agent {
                     label 'test1'
                  }
@@ -59,6 +62,10 @@ pipeline {
         }
 
         stage('Test Docker Container') {
+            when {
+                anyOf {
+                    branch 'main'; branch 'develop'
+                }
             agent {
                     label 'test1'
                  }
@@ -75,6 +82,10 @@ pipeline {
         }
 
         stage('Push to Dockerhub and Logout'){
+            when {
+                anyOf {
+                    branch 'main'; branch 'develop'
+                }
             agent {
                     label 'test1'
                 }
