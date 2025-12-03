@@ -12,18 +12,13 @@ pipeline {
 
     stages {
         stage('Validate branch') {
-            agent {
-                label 'test1'
-            }
-            steps {
-                script {
-                    if (!(env.BRANCH_NAME in ["main", "develop"])) {
-                        error "Build aborted: Pipeline runs ONLY for main and develop branches!"
-                    }
-                    echo "Running pipeline on branch: ${env.BRANCH_NAME}"
+            when {
+                anyOf {
+                    branch 'main'; branch 'develop'
                 }
             }
-        }
+            }
+            
 
         stage('Checkout Code') {
             agent {
